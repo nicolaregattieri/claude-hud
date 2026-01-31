@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xccheckout
+*.xcscheme
+*.plist
+!Info.plist
+!Localizable.strings
+
+# Binary / Packaging
+*.dmg
+*.app
+*.dSYM
+
+# Swift
+.build/
+.swiftpm/
+
+# Local/Private
+*.local.json
