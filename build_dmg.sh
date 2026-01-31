@@ -1,6 +1,15 @@
 #!/bin/bash
 
-echo "🔨 Building ClaudeUsageMonitor..."
+# Claude HUD - Professional Build & Package Script
+# Version: 1.1
+
+APP_NAME="Claude HUD"
+PROJECT_NAME="ClaudeUsageMonitor"
+BUILD_DIR="$(pwd)/build"
+STAGING_DIR="/tmp/claude_hud_staging"
+FINAL_APP_PATH="$STAGING_DIR/$APP_NAME.app"
+
+echo "🔨 Building $APP_NAME..."
 
 # Go to project directory
 cd "$(dirname "$0")"
@@ -8,53 +17,60 @@ cd "$(dirname "$0")"
 # Set Xcode path
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
-# Clean and build
-xcodebuild -project ClaudeUsageMonitor.xcodeproj \
-  -scheme ClaudeUsageMonitor \
+# 1. Clean and build
+# We disable Hardened Runtime because we are not notarizing with Apple.
+# This prevents the "damaged file" error on other machines.
+xcodebuild -project "$PROJECT_NAME.xcodeproj" \
+  -scheme "$PROJECT_NAME" \
   -configuration Release \
   clean build \
-  CONFIGURATION_BUILD_DIR="$(pwd)/build" \
-  2>&1 | grep -E "(error:|warning:|BUILD|ClaudeUsageMonitor\.app)"
+  CONFIGURATION_BUILD_DIR="$BUILD_DIR" \
+  ENABLE_HARDENED_RUNTIME=NO \
+  2>&1 | grep -E "(error:|warning:|BUILD|ClaudeHUD)"
 
 # Check if build succeeded
-if [ ! -d "build/ClaudeUsageMonitor.app" ]; then
+if [ ! -d "$BUILD_DIR/$PROJECT_NAME.app" ]; then
   echo "❌ Build failed!"
   exit 1
 fi
 
 echo "✅ Build succeeded!"
 
-# Copy icon to app bundle
-echo "🎨 Adding icon..."
-cp "ClaudeUsageMonitor/Resources/AppIcon.icns" "build/ClaudeUsageMonitor.app/Contents/Resources/AppIcon.icns"
+# 2. Prepare Staging Area
+echo "📦 Preparing staging area..."
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR"
 
-# Manually copy localization files (since they aren't in project.pbxproj)
-echo "🌍 Adding translations..."
-cp -R "ClaudeUsageMonitor/Resources/en.lproj" "build/ClaudeUsageMonitor.app/Contents/Resources/"
-cp -R "ClaudeUsageMonitor/Resources/pt.lproj" "build/ClaudeUsageMonitor.app/Contents/Resources/"
-cp -R "ClaudeUsageMonitor/Resources/es.lproj" "build/ClaudeUsageMonitor.app/Contents/Resources/"
+# Copy and rename to final name
+cp -R "$BUILD_DIR/$PROJECT_NAME.app" "$FINAL_APP_PATH"
 
-# Re-sign the app after modifications
-codesign --force --sign - "build/ClaudeUsageMonitor.app" 2>/dev/null
+# 3. Inject Resources (Icons & Translations)
+echo "🎨 Adding icon & translations..."
+cp "ClaudeUsageMonitor/Resources/AppIcon.icns" "$FINAL_APP_PATH/Contents/Resources/AppIcon.icns"
+cp -R "ClaudeUsageMonitor/Resources/en.lproj" "$FINAL_APP_PATH/Contents/Resources/"
+cp -R "ClaudeUsageMonitor/Resources/pt.lproj" "$FINAL_APP_PATH/Contents/Resources/"
+cp -R "ClaudeUsageMonitor/Resources/es.lproj" "$FINAL_APP_PATH/Contents/Resources/"
 
-# Remove old DMG if exists
-rm -f ~/Desktop/ClaudeUsageMonitor.dmg
+# 4. Clean extended attributes (CRITICAL to avoid "corrupted" error)
+# This removes local file metadata that triggers Gatekeeper
+echo "🧹 Cleaning extended attributes..."
+xattr -cr "$FINAL_APP_PATH"
 
-# Create DMG
-echo "📦 Creating DMG..."
-mkdir -p /tmp/dmg_staging
-rm -rf /tmp/dmg_staging/*
+# 5. Sign the entire bundle deeply
+# Using --deep ensures all nested resources are signed
+echo "🔏 Signing application..."
+codesign --force --deep --sign - "$FINAL_APP_PATH"
 
-# Copy and rename to "Claude HUD.app"
-cp -R "build/ClaudeUsageMonitor.app" "/tmp/dmg_staging/Claude HUD.app"
-ln -sf /Applications /tmp/dmg_staging/Applications
+# 6. Create DMG
+echo "💿 Creating DMG..."
+rm -f ~/Desktop/ClaudeHUD.dmg
+ln -sf /Applications "$STAGING_DIR/Applications"
 
-hdiutil create -volname "Claude HUD" \
-  -srcfolder /tmp/dmg_staging \
+hdiutil create -volname "$APP_NAME" \
+  -srcfolder "$STAGING_DIR" \
   -ov -format UDZO \
   ~/Desktop/ClaudeHUD.dmg
 
 echo ""
-echo "🎉 Done! DMG created at: ~/Desktop/ClaudeHUD.dmg"
-echo ""
-echo "To install: Open DMG → Drag app to Applications"
+echo "🎉 SUCCESS! Claude HUD is ready on your Desktop."
+echo "To share: Send ClaudeHUD.dmg to anyone."

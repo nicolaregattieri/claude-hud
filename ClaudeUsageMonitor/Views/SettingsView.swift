@@ -273,23 +273,15 @@ struct AboutView: View {
     let onBack: () -> Void
     
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            
-            if let appIcon = NSImage(named: "AppIcon") {
-                Image(nsImage: appIcon)
-                    .resizable()
-                    .frame(width: 80, height: 80)
-            } else {
-                Image(systemName: "flame.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-                    .foregroundColor(.orange)
-            }
-            
-            VStack(spacing: 4) {
-                Text(LocalizedStringKey("claude_usage"))
+                    // Content
+                    VStack(spacing: 16) {
+                        Spacer()
+                        
+                        Image("LogoIcon")
+                            .resizable()
+                            .frame(width: 80, height: 80)
+                        
+                        VStack(spacing: 4) {                Text(LocalizedStringKey("claude_usage"))
                     .font(.system(size: 16, weight: .bold))
                 
                 Text("\(NSLocalizedString("version", comment: "")) 1.0")

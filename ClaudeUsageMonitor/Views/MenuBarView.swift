@@ -162,9 +162,9 @@ struct MenuBarView: View {
                     .foregroundStyle(.primary)
                     .padding(.leading, 4)
             } else {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.orange)
+                Image("LogoIcon")
+                    .resizable()
+                    .frame(width: 16, height: 16)
 
                 Text(credentials?.subscriptionLabel ?? NSLocalizedString("claude_usage", value: "Claude Usage", comment: "App Title"))
                     .font(.system(size: 14, weight: .semibold))
@@ -267,8 +267,6 @@ struct MenuBarView: View {
     }
 
     private func runTerminalCommand(folder: String, command: String) {
-        print("DEBUG: Executing command in folder: \(folder)")
-
         // Sanitize path for AppleScript (escape single quotes)
         let safePath = folder.replacingOccurrences(of: "'", with: "'\\''")
         let fullCommand = "cd '\(safePath)' && \(command)"
@@ -285,14 +283,9 @@ struct MenuBarView: View {
         end tell
         """
         
-        print("DEBUG: AppleScript source:\n\(script)")
-
         if let appleScript = NSAppleScript(source: script) {
             var error: NSDictionary?
             appleScript.executeAndReturnError(&error)
-            if let error = error {
-                print("DEBUG: AppleScript error: \(error)")
-            }
         }
     }
 

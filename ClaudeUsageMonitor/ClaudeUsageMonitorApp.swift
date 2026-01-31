@@ -21,6 +21,7 @@ struct ClaudeUsageMonitorApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState()
     @AppStorage("selectedTheme") private var selectedTheme: AppTheme = .system
+    @AppStorage("showPercentageInMenuBar") private var showPercentage = true
 
     var body: some Scene {
         MenuBarExtra {
@@ -35,8 +36,12 @@ struct ClaudeUsageMonitorApp: App {
                 }
         } label: {
             HStack(spacing: 4) {
-                Image(systemName: "flame")
-                if let percentage = appState.currentUsagePercentage {
+                Image("MenuBarIcon") // Custom Icon
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 12, height: 12)
+                
+                if showPercentage, let percentage = appState.currentUsagePercentage {
                     Text("\(percentage)%")
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
                 }
@@ -104,8 +109,6 @@ class WindowManager: NSObject {
     private override init() {}
     
     func openOnboarding() {
-        print("DEBUG: WindowManager.openOnboarding called")
-        
         NSApp.activate(ignoringOtherApps: true)
         
         if let window = onboardingWindow {

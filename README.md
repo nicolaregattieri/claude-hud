@@ -30,8 +30,19 @@ claude login
 ### Download & Install
 1.  Download the latest `ClaudeHUD.dmg` from the [Releases page](#).
 2.  Drag **Claude HUD.app** to your **Applications** folder.
-3.  **Important (First Run):** Since the app is self-signed, you might see a security warning.
-    *   **Right-click** the app -> Select **Open** -> Click **Open** in the dialog.
+
+## 🛡️ Security & Gatekeeper
+
+Since this app is independently developed and not signed with a paid Apple Developer certificate, macOS may show a warning: *"Claude HUD is damaged and can't be opened"* or *"Unverified Developer"*.
+
+**To fix this, run the following command in your Terminal:**
+```bash
+xattr -cr /Applications/Claude\ HUD.app
+```
+
+Alternatively:
+*   **Right-click** the app in Applications -> Select **Open** -> Click **Open** again.
+*   Or go to **System Settings > Privacy & Security** and click **"Open Anyway"**.
 
 ## 🔐 Permissions
 
@@ -45,7 +56,8 @@ Requirements: Xcode 14+
 ```bash
 git clone https://github.com/nicolaregattieri/claude-hud.git
 cd claude-hud
-./ClaudeUsageMonitor/build_dmg.sh
+chmod +x build_dmg.sh
+./build_dmg.sh
 ```
 
 ## 📄 License

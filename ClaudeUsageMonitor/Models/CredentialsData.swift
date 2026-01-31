@@ -6,9 +6,13 @@ struct CredentialsData {
     let rateLimitTier: String?
 
     var tierMultiplier: String? {
-        guard let tier = rateLimitTier else { return nil }
-        if tier.contains("20x") { return "20X" }
-        if tier.contains("5x") { return "5X" }
+        guard let tier = rateLimitTier?.lowercased() else { return nil }
+        
+        // Extract number followed by 'x' (e.g., 5x, 20x)
+        if let range = tier.range(of: #"\d+x"#, options: .regularExpression) {
+            return String(tier[range]).uppercased()
+        }
+        
         return nil
     }
 
