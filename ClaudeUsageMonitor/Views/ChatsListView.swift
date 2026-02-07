@@ -13,6 +13,16 @@ struct ChatsListView: View {
     let onChatSelect: (ChatSession, Project) -> Void
     let onClose: () -> Void
 
+    @State private var searchText = ""
+
+    private var filteredChats: [ChatWithProject] {
+        guard !searchText.isEmpty else { return Array(chats.prefix(20)) }
+        return chats.filter {
+            $0.chat.displayTitle.localizedCaseInsensitiveContains(searchText) ||
+            $0.project.name.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -40,13 +50,34 @@ struct ChatsListView: View {
                 Divider()
             }
 
+            // Search bar
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                TextField("Search chats...", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11))
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.gray.opacity(0.08))
+
             // Chats list
-            if chats.isEmpty {
+            if filteredChats.isEmpty {
                 emptyView
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(chats.prefix(10)) { item in
+                        ForEach(filteredChats) { item in
                             ChatItemRow(
                                 chat: item.chat,
                                 projectName: item.project.name,

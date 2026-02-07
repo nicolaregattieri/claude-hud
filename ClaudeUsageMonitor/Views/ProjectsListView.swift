@@ -8,6 +8,23 @@ struct ProjectsListView: View {
     let onClose: () -> Void
 
     @State private var expandedProjects: Set<String> = []
+    @State private var searchText = ""
+
+    private var filteredProjects: [Project] {
+        guard !searchText.isEmpty else { return projects }
+        return projects.compactMap { project in
+            let matchesProject = project.name.localizedCaseInsensitiveContains(searchText)
+            let matchingSessions = project.sessions.filter {
+                $0.displayTitle.localizedCaseInsensitiveContains(searchText)
+            }
+            if matchesProject {
+                return project
+            } else if !matchingSessions.isEmpty {
+                return Project(id: project.id, name: project.name, path: project.path, sessions: matchingSessions)
+            }
+            return nil
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -36,13 +53,34 @@ struct ProjectsListView: View {
                 Divider()
             }
 
+            // Search bar
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                TextField("Search projects...", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11))
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.gray.opacity(0.08))
+
             // Projects list
-            if projects.isEmpty {
+            if filteredProjects.isEmpty {
                 emptyView
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(projects) { project in
+                        ForEach(filteredProjects) { project in
                             // Project header
                             ProjectHeader(
                                 project: project,
