@@ -5,6 +5,18 @@ struct UsageRowView: View {
     let percentage: Double
     let resetTime: Date?
 
+    private var percentageColor: Color {
+        if percentage >= 90 {
+            return .red
+        } else if percentage >= 80 {
+            return Color(red: 1.0, green: 0.4, blue: 0.0)
+        } else if percentage >= 60 {
+            return .yellow
+        } else {
+            return .primary
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
@@ -17,7 +29,7 @@ struct UsageRowView: View {
 
                 Text("\(Int(percentage))%")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(percentageColor)
                     .contentTransition(.numericText())
             }
 
@@ -26,7 +38,7 @@ struct UsageRowView: View {
             if let resetTime = resetTime {
                 Text(String(format: NSLocalizedString("resets_in", comment: "Resets in time"), TimeFormatter.timeUntil(from: resetTime)))
                     .font(.system(size: 11))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.secondary)
             }
         }
     }

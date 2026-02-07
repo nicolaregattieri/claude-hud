@@ -3,7 +3,18 @@ import SwiftUI
 struct ProgressBarView: View {
     let value: Double // 0-1
 
-    private let accentColor = Color.orange
+    private var barColor: Color {
+        let percentage = value * 100
+        if percentage >= 90 {
+            return .red
+        } else if percentage >= 80 {
+            return Color(red: 1.0, green: 0.4, blue: 0.0) // deep orange
+        } else if percentage >= 60 {
+            return .yellow
+        } else {
+            return .green
+        }
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -16,7 +27,7 @@ struct ProgressBarView: View {
                 Capsule()
                     .fill(
                         LinearGradient(
-                            colors: [accentColor, accentColor.opacity(0.7)],
+                            colors: [barColor, barColor.opacity(0.7)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
