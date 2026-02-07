@@ -7,7 +7,7 @@ struct MenuBarView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showProjects = false
-    @State private var showChats = false
+    @State private var showActivity = false
     @State private var showSettings = false
     @State private var showAbout = false // New state
     @State private var projects: [Project] = []
@@ -70,8 +70,8 @@ struct MenuBarView: View {
                         }
                     )
                     .transition(.move(edge: .trailing))
-                } else if showChats {
-                    ChatsListView(
+                } else if showActivity {
+                    ActivityView(
                         hideHeader: true,
                         chats: allChats,
                         onChatSelect: { chat, project in
@@ -79,7 +79,7 @@ struct MenuBarView: View {
                         },
                         onClose: {
                             withAnimation {
-                                showChats = false
+                                showActivity = false
                             }
                         }
                     )
@@ -92,7 +92,7 @@ struct MenuBarView: View {
             // Force a consistent width but allow height to adapt
             .frame(width: 320)
             
-            if !showSettings && !showProjects && !showChats {
+            if !showSettings && !showProjects && !showActivity {
                 Divider()
                 // Footer
                 footerView
@@ -130,7 +130,7 @@ struct MenuBarView: View {
 
     private var headerView: some View {
         HStack {
-            if showSettings || showProjects || showChats || showAbout {
+            if showSettings || showProjects || showActivity || showAbout {
                 Button(action: {
                     withAnimation {
                         if showAbout {
@@ -138,7 +138,7 @@ struct MenuBarView: View {
                         } else {
                             showSettings = false
                             showProjects = false
-                            showChats = false
+                            showActivity = false
                         }
                     }
                 }) {
@@ -154,7 +154,7 @@ struct MenuBarView: View {
                     if showAbout { return "about" }
                     if showSettings { return "settings_title" }
                     if showProjects { return "projects" }
-                    if showChats { return "recent_chats" }
+                    if showActivity { return "activity" }
                     return ""
                 }()
                 
@@ -239,14 +239,14 @@ struct MenuBarView: View {
                     loadProjectsIfNeeded()
                     withAnimation {
                         showProjects = true
-                        showChats = false
+                        showActivity = false
                         showSettings = false
                     }
                 },
-                onChatsTap: {
+                onActivityTap: {
                     loadChatsIfNeeded()
                     withAnimation {
-                        showChats = true
+                        showActivity = true
                         showProjects = false
                         showSettings = false
                     }
@@ -256,7 +256,7 @@ struct MenuBarView: View {
                     withAnimation {
                         showSettings = true
                         showProjects = false
-                        showChats = false
+                        showActivity = false
                     }
                 }
             )

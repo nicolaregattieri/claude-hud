@@ -2,7 +2,7 @@ import SwiftUI
 
 struct QuickActionsView: View {
     var onProjectsTap: () -> Void
-    var onChatsTap: () -> Void
+    var onActivityTap: () -> Void
     var onTerminalTap: () -> Void
     var onSettingsTap: () -> Void
 
@@ -15,10 +15,10 @@ struct QuickActionsView: View {
                 action: onProjectsTap
             )
             QuickActionButton(
-                icon: "bubble.left.and.bubble.right.fill",
-                label: "chats",
+                icon: "bolt.fill",
+                label: "activity",
                 isEnabled: true,
-                action: onChatsTap
+                action: onActivityTap
             )
             QuickActionButton(
                 icon: "terminal.fill",
@@ -89,7 +89,7 @@ struct QuickActionButton: View {
 #Preview {
     QuickActionsView(
         onProjectsTap: {},
-        onChatsTap: {},
+        onActivityTap: {},
         onTerminalTap: {},
         onSettingsTap: {}
     )
