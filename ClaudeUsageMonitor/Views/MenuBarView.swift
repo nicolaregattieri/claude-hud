@@ -249,7 +249,7 @@ struct MenuBarView: View {
                     }
                 },
                 onActivityTap: {
-                    loadChatsIfNeeded()
+                    reloadChats()
                     withAnimation {
                         showActivity = true
                         showProjects = false
@@ -294,15 +294,12 @@ struct MenuBarView: View {
         }
     }
 
-    private func loadChatsIfNeeded() {
-        loadProjectsIfNeeded()
-        if allChats.isEmpty {
-            // Coletar todos os chats de todos os projetos e ordenar por data
-            allChats = projects.flatMap { project in
-                project.sessions.map { ChatWithProject(chat: $0, project: project) }
-            }
-            .sorted { $0.chat.modified > $1.chat.modified }
+    private func reloadChats() {
+        projects = ProjectsService.shared.loadProjects()
+        allChats = projects.flatMap { project in
+            project.sessions.map { ChatWithProject(chat: $0, project: project) }
         }
+        .sorted { $0.chat.modified > $1.chat.modified }
     }
 
     private func errorView(message: String) -> some View {
@@ -368,7 +365,7 @@ struct MenuBarView: View {
         .padding(.vertical, 20)
         .onAppear {
             if message == APIError.tokenExpired.localizedDescription {
-                loadChatsIfNeeded()
+                reloadChats()
             }
         }
     }
