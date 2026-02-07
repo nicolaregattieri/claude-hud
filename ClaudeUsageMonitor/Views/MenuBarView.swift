@@ -15,6 +15,7 @@ struct MenuBarView: View {
 
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
     @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
+    @AppStorage("customTerminalName") private var customTerminalName: String = ""
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -285,7 +286,12 @@ struct MenuBarView: View {
     }
 
     private func runTerminalCommand(folder: String, command: String) {
-        TerminalService.shared.runCommand(folder: folder, command: command, app: selectedTerminalApp)
+        TerminalService.shared.runCommand(
+            folder: folder,
+            command: command,
+            app: selectedTerminalApp,
+            customAppName: customTerminalName.isEmpty ? nil : customTerminalName
+        )
     }
 
     private func loadProjectsIfNeeded() {

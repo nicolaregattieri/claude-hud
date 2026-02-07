@@ -9,6 +9,7 @@ struct SettingsView: View {
     @AppStorage("selectedTheme") private var selectedTheme: AppTheme = .system
     @AppStorage("usageAlertsEnabled") private var usageAlertsEnabled = true
     @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
+    @AppStorage("customTerminalName") private var customTerminalName: String = ""
     @State private var launchAtLogin = false
 
     var hideHeader: Bool = false
@@ -134,6 +135,18 @@ struct SettingsView: View {
                         .controlSize(.small)
                     }
                     .padding(.vertical, 6)
+
+                    if selectedTerminalApp == .custom {
+                        Divider()
+                            .padding(.leading, 34)
+
+                        SettingsRow(icon: "pencil", iconColor: .green) {
+                            TextField("App name (e.g. Alacritty)", text: $customTerminalName)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 12))
+                        }
+                        .padding(.vertical, 6)
+                    }
 
                     Divider()
                         .padding(.leading, 34)
