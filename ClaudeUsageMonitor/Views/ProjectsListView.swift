@@ -8,6 +8,23 @@ struct ProjectsListView: View {
     let onClose: () -> Void
 
     @State private var expandedProjects: Set<String> = []
+    @State private var searchText = ""
+
+    private var filteredProjects: [Project] {
+        guard !searchText.isEmpty else { return projects }
+        return projects.compactMap { project in
+            let matchesProject = project.name.localizedCaseInsensitiveContains(searchText)
+            let matchingSessions = project.sessions.filter {
+                $0.displayTitle.localizedCaseInsensitiveContains(searchText)
+            }
+            if matchesProject {
+                return project
+            } else if !matchingSessions.isEmpty {
+                return Project(id: project.id, name: project.name, path: project.path, sessions: matchingSessions)
+            }
+            return nil
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -36,13 +53,34 @@ struct ProjectsListView: View {
                 Divider()
             }
 
+            // Search bar
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                TextField("Search projects...", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color.gray.opacity(0.06))
+
             // Projects list
-            if projects.isEmpty {
+            if filteredProjects.isEmpty {
                 emptyView
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(projects) { project in
+                        ForEach(filteredProjects) { project in
                             // Project header
                             ProjectHeader(
                                 project: project,
@@ -111,37 +149,54 @@ struct ProjectHeader: View {
     @State private var isHovered = false
 
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Image(systemName: isExpanded ? "folder.fill" : "folder")
-                .font(.system(size: 12))
+                .font(.system(size: 14))
                 .foregroundStyle(.orange)
+
             Text(project.name)
                 .font(.system(size: 12, weight: .medium))
                 .lineLimit(1)
+
             Spacer()
 
-            // Terminal button
-            Button(action: onTerminalTap) {
-                Image(systemName: "terminal.fill")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+            if isHovered {
+                Button(action: {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: project.path))
+                }) {
+                    Image(systemName: "folder.badge.arrow.forward")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Open in Finder")
+
+                Button(action: onTerminalTap) {
+                    Image(systemName: "terminal.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Open in Terminal")
             }
-            .buttonStyle(.plain)
 
             Text("\(project.sessionCount)")
-                .font(.system(size: 10))
+                .font(.system(size: 9, weight: .medium))
                 .foregroundStyle(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.gray.opacity(0.12))
+                .clipShape(Capsule())
+
             Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                .font(.system(size: 10))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(isHovered ? Color.gray.opacity(0.1) : Color.clear)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+        .background(isHovered ? Color.gray.opacity(0.08) : Color.clear)
         .contentShape(Rectangle())
-        .onTapGesture {
-            onToggle()
-        }
+        .onTapGesture { onToggle() }
         .onHover { isHovered = $0 }
     }
 }
@@ -151,30 +206,49 @@ struct ChatRow: View {
     let onSelect: () -> Void
 
     @State private var isHovered = false
+    @State private var showCopied = false
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             Image(systemName: "bubble.left.fill")
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
+
             Text(session.displayTitle)
                 .font(.system(size: 11))
                 .lineLimit(1)
                 .foregroundColor(.primary)
+
             Spacer()
+
+            if isHovered {
+                Button(action: {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString("claude --resume \(session.sessionId)", forType: .string)
+                    showCopied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        showCopied = false
+                    }
+                }) {
+                    Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 10))
+                        .foregroundColor(showCopied ? .green : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy resume command")
+            }
+
             Text(TimeFormatter.timeAgo(from: session.modified))
                 .font(.system(size: 10))
                 .foregroundColor(.gray)
         }
-        .padding(.leading, 32)
-        .padding(.trailing, 12)
-        .padding(.vertical, 6)
+        .padding(.leading, 34)
+        .padding(.trailing, 14)
+        .padding(.vertical, 7)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isHovered ? Color.gray.opacity(0.1) : Color.clear)
+        .background(isHovered ? Color.gray.opacity(0.08) : Color.clear)
         .contentShape(Rectangle())
-        .onTapGesture {
-            onSelect()
-        }
+        .onTapGesture { onSelect() }
         .onHover { isHovered = $0 }
     }
 }

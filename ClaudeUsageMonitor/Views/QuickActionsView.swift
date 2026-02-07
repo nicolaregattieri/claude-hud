@@ -2,94 +2,75 @@ import SwiftUI
 
 struct QuickActionsView: View {
     var onProjectsTap: () -> Void
-    var onChatsTap: () -> Void
+    var onActivityTap: () -> Void
     var onTerminalTap: () -> Void
     var onSettingsTap: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             QuickActionButton(
                 icon: "folder.fill",
-                label: "projects",
-                isEnabled: true,
+                label: "Projects",
                 action: onProjectsTap
             )
             QuickActionButton(
-                icon: "bubble.left.and.bubble.right.fill",
-                label: "chats",
-                isEnabled: true,
-                action: onChatsTap
+                icon: "bolt.fill",
+                label: "Activity",
+                action: onActivityTap
             )
             QuickActionButton(
                 icon: "terminal.fill",
-                label: "terminal",
-                isEnabled: true,
+                label: "Terminal",
                 action: onTerminalTap
             )
             QuickActionButton(
                 icon: "gearshape.fill",
-                label: "settings",
-                isEnabled: true,
+                label: "Settings",
                 action: onSettingsTap
             )
         }
-        .padding(.horizontal, 4)
     }
 }
 
 struct QuickActionButton: View {
     let icon: String
     let label: String
-    let isEnabled: Bool
     let action: () -> Void
 
     @State private var isHovered = false
 
     var body: some View {
-        Button(action: {
-            if isEnabled {
-                action()
-            }
-        }) {
-            ZStack {
-                backgroundView
-                
+        Button(action: action) {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(iconColor)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(isHovered ? .orange : .secondary)
+
+                Text(label)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(isHovered ? .orange : Color.gray)
             }
-            .frame(height: 36)
+            .frame(height: 44)
             .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isHovered ? Color.orange.opacity(0.08) : Color.clear)
+            )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(!isEnabled)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovered = hovering
             }
         }
-        .help(isEnabled ? LocalizedStringKey(label) : "Coming soon")
-    }
-
-    private var iconColor: Color {
-        if !isEnabled {
-            return Color.gray.opacity(0.5)
-        }
-        return isHovered ? .orange : .secondary
-    }
-
-    @ViewBuilder
-    private var backgroundView: some View {
-        RoundedRectangle(cornerRadius: 6)
-            .fill(isHovered && isEnabled ? Color.gray.opacity(0.1) : Color.clear)
     }
 }
 
 #Preview {
     QuickActionsView(
         onProjectsTap: {},
-        onChatsTap: {},
+        onActivityTap: {},
         onTerminalTap: {},
         onSettingsTap: {}
     )

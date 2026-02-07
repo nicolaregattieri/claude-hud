@@ -24,6 +24,10 @@
 		0A123456000F /* ProjectsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550011; };
 		0A1234560012 /* ChatsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550012; };
 		0A1234560013 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550013; };
+		0A1234560020 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550020; };
+		0A1234560021 /* TerminalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550021; };
+		0A1234560022 /* UsageHistoryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550022; };
+		0A1234560023 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1234550023; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +51,10 @@
 		0A1234550011 /* ProjectsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsListView.swift; sourceTree = "<group>"; };
 		0A1234550012 /* ChatsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsListView.swift; sourceTree = "<group>"; };
 		0A1234550013 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0A1234550020 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		0A1234550021 /* TerminalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalService.swift; sourceTree = "<group>"; };
+		0A1234550022 /* UsageHistoryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageHistoryService.swift; sourceTree = "<group>"; };
+		0A1234550023 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +109,7 @@
 				0A1234550011 /* ProjectsListView.swift */,
 				0A1234550012 /* ChatsListView.swift */,
 				0A1234550013 /* SettingsView.swift */,
+				0A1234550023 /* SparklineView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -111,6 +120,9 @@
 				0A1234550005 /* UsageAPI.swift */,
 				0A1234550006 /* KeychainService.swift */,
 				0A1234550010 /* ProjectsService.swift */,
+				0A1234550020 /* NotificationService.swift */,
+				0A1234550021 /* TerminalService.swift */,
+				0A1234550022 /* UsageHistoryService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -227,6 +239,10 @@
 				0A123456000F /* ProjectsListView.swift in Sources */,
 				0A1234560012 /* ChatsListView.swift in Sources */,
 				0A1234560013 /* SettingsView.swift in Sources */,
+				0A1234560020 /* NotificationService.swift in Sources */,
+				0A1234560021 /* TerminalService.swift in Sources */,
+				0A1234560022 /* UsageHistoryService.swift in Sources */,
+				0A1234560023 /* SparklineView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

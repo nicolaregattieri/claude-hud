@@ -7,6 +7,8 @@ struct SettingsView: View {
     @AppStorage("showPercentageInMenuBar") private var showPercentage = true
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
     @AppStorage("selectedTheme") private var selectedTheme: AppTheme = .system
+    @AppStorage("usageAlertsEnabled") private var usageAlertsEnabled = true
+    @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
     @State private var launchAtLogin = false
 
     var hideHeader: Bool = false
@@ -16,7 +18,6 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header (Main Settings Header)
             if !hideHeader {
                 HStack {
                     Image(systemName: "gearshape.fill")
@@ -47,180 +48,199 @@ struct SettingsView: View {
     }
 
     private var settingsContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Refresh interval
-            VStack(alignment: .leading, spacing: 6) {
-                Text("refresh_interval")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 14) {
+            // MARK: - Refresh Interval
+            SettingsSection(title: "Refresh") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("refresh_interval")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
 
-                Picker("", selection: $refreshInterval) {
-                    Text("30s").tag(30)
-                    Text("1 min").tag(60)
-                    Text("2 min").tag(120)
+                    Picker("", selection: $refreshInterval) {
+                        Text("30s").tag(30)
+                        Text("1 min").tag(60)
+                        Text("2 min").tag(120)
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: refreshInterval) { newValue in
+                        onRefreshIntervalChange?(newValue)
+                    }
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: refreshInterval) { newValue in
-                    onRefreshIntervalChange?(newValue)
-                }
+                .padding(.vertical, 2)
             }
 
-            Divider()
-
-            // Display options
-            VStack(alignment: .leading, spacing: 10) {
-                Text("display")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                // Theme Picker
-                HStack {
-                    Image(systemName: "paintpalette")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.orange)
-                    Text("theme")
-                        .font(.system(size: 11))
-                    Spacer()
-                    Picker("", selection: $selectedTheme) {
-                        ForEach(AppTheme.allCases) { theme in
-                            Text(LocalizedStringKey(theme.rawValue.lowercased())).tag(theme)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(width: 80)
-                    .controlSize(.small)
-                }
-
-                Toggle(isOn: $showPercentage) {
-                    HStack {
-                        Image(systemName: "percent")
+            // MARK: - Display
+            SettingsSection(title: "Display") {
+                VStack(spacing: 0) {
+                    SettingsRow(icon: "paintpalette.fill", iconColor: .purple) {
+                        Text("theme")
                             .font(.system(size: 12))
-                            .foregroundStyle(.orange)
+                        Spacer()
+                        Picker("", selection: $selectedTheme) {
+                            ForEach(AppTheme.allCases) { theme in
+                                Text(LocalizedStringKey(theme.rawValue.lowercased())).tag(theme)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 90)
+                        .controlSize(.small)
+                    }
+                    .padding(.vertical, 6)
+
+                    Divider()
+                        .padding(.leading, 34)
+
+                    SettingsRow(icon: "chart.bar.fill", iconColor: .blue) {
                         Text("show_percentage")
-                            .font(.system(size: 11))
-                    }
-                }
-                .toggleStyle(.switch)
-                .controlSize(.small)
-            }
-
-            Divider()
-
-            // Terminal options
-            VStack(alignment: .leading, spacing: 10) {
-                Text("terminal")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                HStack(spacing: 8) {
-                    Image(systemName: "folder")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.orange)
-
-                    Text(defaultTerminalFolder.isEmpty ? NSLocalizedString("home", value: "Home (~)", comment: "Home dir") : defaultTerminalFolder)
-                        .font(.system(size: 11))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .foregroundStyle(defaultTerminalFolder.isEmpty ? .secondary : .primary)
-
-                    Spacer()
-
-                    if !defaultTerminalFolder.isEmpty {
-                        Button(action: { defaultTerminalFolder = "" }) {
-                            Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Button("choose") {
-                        selectDefaultFolder()
-                    }
-                    .font(.system(size: 11))
-                    .controlSize(.small)
-                }
-            }
-
-            Divider()
-
-            // Claude options
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Claude")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                Button(action: openSkillsFolder) {
-                    HStack {
-                        Image(systemName: "folder.badge.gear")
                             .font(.system(size: 12))
-                            .foregroundStyle(.orange)
+                        Spacer()
+                        Toggle("", isOn: $showPercentage)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                    .padding(.vertical, 6)
+
+                    Divider()
+                        .padding(.leading, 34)
+
+                    SettingsRow(icon: "bell.badge.fill", iconColor: .red) {
+                        Text("Usage alerts (80%/90%)")
+                            .font(.system(size: 12))
+                        Spacer()
+                        Toggle("", isOn: $usageAlertsEnabled)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+
+            // MARK: - Terminal
+            SettingsSection(title: "Terminal") {
+                VStack(spacing: 0) {
+                    SettingsRow(icon: "apple.terminal.fill", iconColor: .green) {
+                        Text("Terminal app")
+                            .font(.system(size: 12))
+                        Spacer()
+                        Picker("", selection: $selectedTerminalApp) {
+                            ForEach(TerminalApp.allCases.filter { $0.isInstalled }) { app in
+                                Text(app.rawValue).tag(app)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 100)
+                        .controlSize(.small)
+                    }
+                    .padding(.vertical, 6)
+
+                    Divider()
+                        .padding(.leading, 34)
+
+                    SettingsRow(icon: "folder.fill", iconColor: .orange) {
+                        Text(defaultTerminalFolder.isEmpty ? NSLocalizedString("home", value: "Home (~)", comment: "Home dir") : abbreviatePath(defaultTerminalFolder))
+                            .font(.system(size: 12))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .foregroundStyle(defaultTerminalFolder.isEmpty ? .secondary : .primary)
+
+                        Spacer()
+
+                        if !defaultTerminalFolder.isEmpty {
+                            Button(action: { defaultTerminalFolder = "" }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Button("choose") {
+                            selectDefaultFolder()
+                        }
+                        .font(.system(size: 11))
+                        .controlSize(.small)
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+
+            // MARK: - Claude
+            SettingsSection(title: "Claude") {
+                Button(action: openSkillsFolder) {
+                    SettingsRow(icon: "wand.and.stars", iconColor: .indigo) {
                         Text("open_skills_folder")
-                            .font(.system(size: 11))
+                            .font(.system(size: 12))
                         Spacer()
                         Image(systemName: "arrow.up.forward.square")
-                            .font(.system(size: 10))
+                            .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
-                    .contentShape(Rectangle())
+                    .padding(.vertical, 2)
                 }
                 .buttonStyle(.plain)
             }
 
-            Divider()
-
-            // System options
-            VStack(alignment: .leading, spacing: 10) {
-                Text("system")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                Toggle(isOn: $launchAtLogin) {
-                    HStack {
-                        Image(systemName: "power")
+            // MARK: - System
+            SettingsSection(title: "System") {
+                VStack(spacing: 0) {
+                    SettingsRow(icon: "sunrise.fill", iconColor: .orange) {
+                        Text("launch_at_login")
                             .font(.system(size: 12))
-                            .foregroundStyle(.orange)
-                            Text("launch_at_login")
-                                .font(.system(size: 11))
-                        }
-                    }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .onChange(of: launchAtLogin) { newValue in
-                        setLaunchAtLogin(newValue)
-                    }
-                }
-
-            Divider()
-
-            // About row
-            Button(action: {
-                withAnimation {
-                    onAboutTap()
-                }
-            }) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("about")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
-
-                    HStack {
-                        Text("claude_usage")
-                            .font(.system(size: 11))
                         Spacer()
-                        Text("v1.0")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.tertiary)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.tertiary)
+                        Toggle("", isOn: $launchAtLogin)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                            .onChange(of: launchAtLogin) { newValue in
+                                setLaunchAtLogin(newValue)
+                            }
                     }
+                    .padding(.vertical, 6)
+
+                    Divider()
+                        .padding(.leading, 34)
+
+                    // About
+                    Button(action: {
+                        withAnimation { onAboutTap() }
+                    }) {
+                        HStack(spacing: 10) {
+                            Image("LogoIcon")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                            Text("about")
+                                .font(.system(size: 12))
+
+                            Spacer()
+
+                            Text("v1.1")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 6)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
         }
-        .padding(12)
+        .padding(14)
+    }
+
+    private func abbreviatePath(_ path: String) -> String {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        if path.hasPrefix(home) {
+            return "~" + path.dropFirst(home.count)
+        }
+        return path
     }
 
     private func selectDefaultFolder() {
@@ -263,6 +283,56 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Settings Section
+
+struct SettingsSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .tracking(0.5)
+                .padding(.leading, 4)
+
+            VStack(alignment: .leading, spacing: 0) {
+                content
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.06))
+            )
+        }
+    }
+}
+
+// MARK: - Settings Row
+
+struct SettingsRow<Content: View>: View {
+    let icon: String
+    let iconColor: Color
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.white)
+                .frame(width: 24, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(iconColor.gradient)
+                )
+
+            content
+        }
+    }
+}
+
 #Preview {
     SettingsView(onAboutTap: {}, onClose: {})
         .frame(width: 320)
@@ -271,38 +341,38 @@ struct SettingsView: View {
 
 struct AboutView: View {
     let onBack: () -> Void
-    
+
     var body: some View {
-                    // Content
-                    VStack(spacing: 16) {
-                        Spacer()
-                        
-                        Image("LogoIcon")
-                            .resizable()
-                            .frame(width: 80, height: 80)
-                        
-                        VStack(spacing: 4) {                Text(LocalizedStringKey("claude_usage"))
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image("LogoIcon")
+                .resizable()
+                .frame(width: 80, height: 80)
+
+            VStack(spacing: 4) {
+                Text(LocalizedStringKey("claude_usage"))
                     .font(.system(size: 16, weight: .bold))
-                
-                Text("\(NSLocalizedString("version", comment: "")) 1.0")
+
+                Text("\(NSLocalizedString("version", comment: "")) 1.1")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
-            
+
             VStack(spacing: 4) {
                 Text(LocalizedStringKey("created_by"))
                     .font(.system(size: 11))
-                
+
                 Text(LocalizedStringKey("powered_by"))
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
-            
-            Text("Copyright © 2026")
+
+            Text("Copyright \u{00A9} 2026")
                 .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
                 .padding(.top, 8)
-            
+
             Spacer()
         }
         .frame(maxWidth: .infinity)

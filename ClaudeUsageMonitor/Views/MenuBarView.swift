@@ -7,13 +7,14 @@ struct MenuBarView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showProjects = false
-    @State private var showChats = false
+    @State private var showActivity = false
     @State private var showSettings = false
     @State private var showAbout = false // New state
     @State private var projects: [Project] = []
     @State private var allChats: [ChatWithProject] = []
 
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
+    @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -69,8 +70,8 @@ struct MenuBarView: View {
                         }
                     )
                     .transition(.move(edge: .trailing))
-                } else if showChats {
-                    ChatsListView(
+                } else if showActivity {
+                    ActivityView(
                         hideHeader: true,
                         chats: allChats,
                         onChatSelect: { chat, project in
@@ -78,7 +79,7 @@ struct MenuBarView: View {
                         },
                         onClose: {
                             withAnimation {
-                                showChats = false
+                                showActivity = false
                             }
                         }
                     )
@@ -91,7 +92,7 @@ struct MenuBarView: View {
             // Force a consistent width but allow height to adapt
             .frame(width: 320)
             
-            if !showSettings && !showProjects && !showChats {
+            if !showSettings && !showProjects && !showActivity {
                 Divider()
                 // Footer
                 footerView
@@ -129,7 +130,7 @@ struct MenuBarView: View {
 
     private var headerView: some View {
         HStack {
-            if showSettings || showProjects || showChats || showAbout {
+            if showSettings || showProjects || showActivity || showAbout {
                 Button(action: {
                     withAnimation {
                         if showAbout {
@@ -137,7 +138,7 @@ struct MenuBarView: View {
                         } else {
                             showSettings = false
                             showProjects = false
-                            showChats = false
+                            showActivity = false
                         }
                     }
                 }) {
@@ -153,7 +154,7 @@ struct MenuBarView: View {
                     if showAbout { return "about" }
                     if showSettings { return "settings_title" }
                     if showProjects { return "projects" }
-                    if showChats { return "recent_chats" }
+                    if showActivity { return "activity" }
                     return ""
                 }()
                 
@@ -218,6 +219,23 @@ struct MenuBarView: View {
                 )
             }
 
+            // Sparkline - 24h usage trend
+            let sessionHistory = UsageHistoryService.shared.sessionHistory()
+            if sessionHistory.count >= 2 {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Image(systemName: "chart.xyaxis.line")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.orange.opacity(0.7))
+                        Text("24H TREND")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    SparklineView(data: sessionHistory, color: .orange)
+                        .frame(height: 32)
+                }
+            }
+
             Divider()
                 .padding(.top, 4)
 
@@ -226,14 +244,14 @@ struct MenuBarView: View {
                     loadProjectsIfNeeded()
                     withAnimation {
                         showProjects = true
-                        showChats = false
+                        showActivity = false
                         showSettings = false
                     }
                 },
-                onChatsTap: {
+                onActivityTap: {
                     loadChatsIfNeeded()
                     withAnimation {
-                        showChats = true
+                        showActivity = true
                         showProjects = false
                         showSettings = false
                     }
@@ -243,7 +261,7 @@ struct MenuBarView: View {
                     withAnimation {
                         showSettings = true
                         showProjects = false
-                        showChats = false
+                        showActivity = false
                     }
                 }
             )
@@ -267,26 +285,7 @@ struct MenuBarView: View {
     }
 
     private func runTerminalCommand(folder: String, command: String) {
-        // Sanitize path for AppleScript (escape single quotes)
-        let safePath = folder.replacingOccurrences(of: "'", with: "'\\''")
-        let fullCommand = "cd '\(safePath)' && \(command)"
-        
-        // Escape backslashes and double quotes for the AppleScript string literal
-        let applescriptCommand = fullCommand
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-
-        let script = """
-        tell application "Terminal"
-            activate
-            do script "\(applescriptCommand)"
-        end tell
-        """
-        
-        if let appleScript = NSAppleScript(source: script) {
-            var error: NSDictionary?
-            appleScript.executeAndReturnError(&error)
-        }
+        TerminalService.shared.runCommand(folder: folder, command: command, app: selectedTerminalApp)
     }
 
     private func loadProjectsIfNeeded() {
@@ -404,17 +403,23 @@ struct MenuBarView: View {
 
     private var footerView: some View {
         HStack {
+            Image(systemName: "clock")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+
             Text("\(TimeFormatter.timeAgo(from: lastUpdated)) \(NSLocalizedString("ago", value: "ago", comment: "Time ago"))")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Button(action: { refresh() }) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(isLoading ? .tertiary : .secondary)
+                        .rotationEffect(.degrees(isLoading ? 360 : 0))
+                        .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoading)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLoading)
@@ -422,7 +427,7 @@ struct MenuBarView: View {
                 Button(action: { NSApp.terminate(nil) }) {
                     Image(systemName: "power")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.red.opacity(0.6))
                 }
                 .buttonStyle(.plain)
             }
