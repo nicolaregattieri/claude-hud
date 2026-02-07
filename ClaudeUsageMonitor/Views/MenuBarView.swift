@@ -222,12 +222,17 @@ struct MenuBarView: View {
             // Sparkline - 24h usage trend
             let sessionHistory = UsageHistoryService.shared.sessionHistory()
             if sessionHistory.count >= 2 {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("24H TREND")
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Image(systemName: "chart.xyaxis.line")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.orange.opacity(0.7))
+                        Text("24H TREND")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
                     SparklineView(data: sessionHistory, color: .orange)
-                        .frame(height: 28)
+                        .frame(height: 32)
                 }
             }
 
@@ -398,17 +403,23 @@ struct MenuBarView: View {
 
     private var footerView: some View {
         HStack {
+            Image(systemName: "clock")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+
             Text("\(TimeFormatter.timeAgo(from: lastUpdated)) \(NSLocalizedString("ago", value: "ago", comment: "Time ago"))")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Button(action: { refresh() }) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(isLoading ? .tertiary : .secondary)
+                        .rotationEffect(.degrees(isLoading ? 360 : 0))
+                        .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoading)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLoading)
@@ -416,7 +427,7 @@ struct MenuBarView: View {
                 Button(action: { NSApp.terminate(nil) }) {
                     Image(systemName: "power")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.red.opacity(0.6))
                 }
                 .buttonStyle(.plain)
             }

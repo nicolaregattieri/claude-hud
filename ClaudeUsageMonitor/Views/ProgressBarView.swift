@@ -36,7 +36,7 @@ struct ProgressBarView: View {
                     .animation(.easeInOut(duration: 0.3), value: value)
             }
         }
-        .frame(height: 6)
+        .frame(height: 8)
     }
 }
 
