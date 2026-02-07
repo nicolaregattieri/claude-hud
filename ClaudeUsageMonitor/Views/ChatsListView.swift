@@ -79,6 +79,7 @@ struct ChatItemRow: View {
     let onSelect: () -> Void
 
     @State private var isHovered = false
+    @State private var showCopied = false
 
     var body: some View {
         HStack(spacing: 8) {
@@ -108,6 +109,23 @@ struct ChatItemRow: View {
             }
 
             Spacer()
+
+            if isHovered {
+                Button(action: {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString("claude --resume \(chat.sessionId)", forType: .string)
+                    showCopied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        showCopied = false
+                    }
+                }) {
+                    Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 9))
+                        .foregroundColor(showCopied ? .green : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy resume command")
+            }
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 10))

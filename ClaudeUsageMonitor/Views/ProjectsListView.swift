@@ -120,6 +120,17 @@ struct ProjectHeader: View {
                 .lineLimit(1)
             Spacer()
 
+            // Open in Finder button
+            Button(action: {
+                NSWorkspace.shared.open(URL(fileURLWithPath: project.path))
+            }) {
+                Image(systemName: "folder.badge.arrow.forward")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Open in Finder")
+
             // Terminal button
             Button(action: onTerminalTap) {
                 Image(systemName: "terminal.fill")
@@ -127,6 +138,7 @@ struct ProjectHeader: View {
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
+            .help("Open in Terminal")
 
             Text("\(project.sessionCount)")
                 .font(.system(size: 10))
@@ -151,6 +163,7 @@ struct ChatRow: View {
     let onSelect: () -> Void
 
     @State private var isHovered = false
+    @State private var showCopied = false
 
     var body: some View {
         HStack(spacing: 6) {
@@ -162,6 +175,24 @@ struct ChatRow: View {
                 .lineLimit(1)
                 .foregroundColor(.primary)
             Spacer()
+
+            if isHovered {
+                Button(action: {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString("claude --resume \(session.sessionId)", forType: .string)
+                    showCopied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        showCopied = false
+                    }
+                }) {
+                    Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 9))
+                        .foregroundColor(showCopied ? .green : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy resume command")
+            }
+
             Text(TimeFormatter.timeAgo(from: session.modified))
                 .font(.system(size: 10))
                 .foregroundColor(.gray)
