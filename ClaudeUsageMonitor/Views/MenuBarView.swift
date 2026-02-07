@@ -14,6 +14,7 @@ struct MenuBarView: View {
     @State private var allChats: [ChatWithProject] = []
 
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
+    @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -267,26 +268,7 @@ struct MenuBarView: View {
     }
 
     private func runTerminalCommand(folder: String, command: String) {
-        // Sanitize path for AppleScript (escape single quotes)
-        let safePath = folder.replacingOccurrences(of: "'", with: "'\\''")
-        let fullCommand = "cd '\(safePath)' && \(command)"
-        
-        // Escape backslashes and double quotes for the AppleScript string literal
-        let applescriptCommand = fullCommand
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-
-        let script = """
-        tell application "Terminal"
-            activate
-            do script "\(applescriptCommand)"
-        end tell
-        """
-        
-        if let appleScript = NSAppleScript(source: script) {
-            var error: NSDictionary?
-            appleScript.executeAndReturnError(&error)
-        }
+        TerminalService.shared.runCommand(folder: folder, command: command, app: selectedTerminalApp)
     }
 
     private func loadProjectsIfNeeded() {

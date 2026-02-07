@@ -8,6 +8,7 @@ struct SettingsView: View {
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
     @AppStorage("selectedTheme") private var selectedTheme: AppTheme = .system
     @AppStorage("usageAlertsEnabled") private var usageAlertsEnabled = true
+    @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
     @State private var launchAtLogin = false
 
     var hideHeader: Bool = false
@@ -124,6 +125,24 @@ struct SettingsView: View {
                 Text("terminal")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
+
+                // Terminal app picker
+                HStack {
+                    Image(systemName: "apple.terminal.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.orange)
+                    Text("Terminal app")
+                        .font(.system(size: 11))
+                    Spacer()
+                    Picker("", selection: $selectedTerminalApp) {
+                        ForEach(TerminalApp.allCases.filter { $0.isInstalled }) { app in
+                            Text(app.rawValue).tag(app)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 100)
+                    .controlSize(.small)
+                }
 
                 HStack(spacing: 8) {
                     Image(systemName: "folder")
