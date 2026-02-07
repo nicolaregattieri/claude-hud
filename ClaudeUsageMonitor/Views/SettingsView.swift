@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("showPercentageInMenuBar") private var showPercentage = true
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
     @AppStorage("selectedTheme") private var selectedTheme: AppTheme = .system
+    @AppStorage("usageAlertsEnabled") private var usageAlertsEnabled = true
     @State private var launchAtLogin = false
 
     var hideHeader: Bool = false
@@ -97,6 +98,18 @@ struct SettingsView: View {
                             .font(.system(size: 12))
                             .foregroundStyle(.orange)
                         Text("show_percentage")
+                            .font(.system(size: 11))
+                    }
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+
+                Toggle(isOn: $usageAlertsEnabled) {
+                    HStack {
+                        Image(systemName: "bell.badge.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.orange)
+                        Text("Usage alerts (80%/90%)")
                             .font(.system(size: 11))
                     }
                 }

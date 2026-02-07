@@ -74,8 +74,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 class AppState: ObservableObject {
     @Published var currentUsagePercentage: Int?
+    var lastNotifiedThresholds: [String: Int] = [:]
 
     init() {
+        NotificationService.shared.requestPermission()
         fetchUsage()
 
         // Refresh every 60 seconds
@@ -92,10 +94,31 @@ class AppState: ObservableObject {
                     if let fiveHour = data.fiveHour {
                         self.currentUsagePercentage = Int(fiveHour.utilization)
                     }
+                    self.checkAlerts(data: data)
                 }
             } catch {
                 print("Failed to fetch usage: \(error)")
             }
+        }
+    }
+
+    private func checkAlerts(data: UsageData) {
+        let alertsEnabled = UserDefaults.standard.bool(forKey: "usageAlertsEnabled")
+        guard alertsEnabled else { return }
+
+        if let fiveHour = data.fiveHour {
+            NotificationService.shared.checkAndNotify(
+                metric: "Session (5h)",
+                percentage: fiveHour.utilization,
+                lastNotified: &lastNotifiedThresholds
+            )
+        }
+        if let sevenDay = data.sevenDay {
+            NotificationService.shared.checkAndNotify(
+                metric: "Weekly (7d)",
+                percentage: sevenDay.utilization,
+                lastNotified: &lastNotifiedThresholds
+            )
         }
     }
 }
