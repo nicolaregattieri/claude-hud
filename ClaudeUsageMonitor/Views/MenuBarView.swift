@@ -219,6 +219,18 @@ struct MenuBarView: View {
                 )
             }
 
+            // Sparkline - 24h usage trend
+            let sessionHistory = UsageHistoryService.shared.sessionHistory()
+            if sessionHistory.count >= 2 {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("24H TREND")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    SparklineView(data: sessionHistory, color: .orange)
+                        .frame(height: 28)
+                }
+            }
+
             Divider()
                 .padding(.top, 4)
 

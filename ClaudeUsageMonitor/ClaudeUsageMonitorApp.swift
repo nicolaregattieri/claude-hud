@@ -103,6 +103,12 @@ class AppState: ObservableObject {
     }
 
     private func checkAlerts(data: UsageData) {
+        // Record usage history
+        UsageHistoryService.shared.record(
+            session: data.fiveHour?.utilization ?? 0,
+            weekly: data.sevenDay?.utilization ?? 0
+        )
+
         let alertsEnabled = UserDefaults.standard.bool(forKey: "usageAlertsEnabled")
         guard alertsEnabled else { return }
 
