@@ -66,11 +66,12 @@ struct SettingsView: View {
                         onRefreshIntervalChange?(newValue)
                     }
                 }
+                .padding(.vertical, 2)
             }
 
             // MARK: - Display
             SettingsSection(title: "Display") {
-                VStack(spacing: 12) {
+                VStack(spacing: 0) {
                     SettingsRow(icon: "paintpalette.fill", iconColor: .purple) {
                         Text("theme")
                             .font(.system(size: 12))
@@ -84,34 +85,41 @@ struct SettingsView: View {
                         .frame(width: 90)
                         .controlSize(.small)
                     }
+                    .padding(.vertical, 6)
 
                     Divider()
+                        .padding(.leading, 34)
 
                     SettingsRow(icon: "chart.bar.fill", iconColor: .blue) {
-                        Toggle(isOn: $showPercentage) {
-                            Text("show_percentage")
-                                .font(.system(size: 12))
-                        }
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
+                        Text("show_percentage")
+                            .font(.system(size: 12))
+                        Spacer()
+                        Toggle("", isOn: $showPercentage)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
                     }
+                    .padding(.vertical, 6)
 
                     Divider()
+                        .padding(.leading, 34)
 
                     SettingsRow(icon: "bell.badge.fill", iconColor: .red) {
-                        Toggle(isOn: $usageAlertsEnabled) {
-                            Text("Usage alerts (80%/90%)")
-                                .font(.system(size: 12))
-                        }
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
+                        Text("Usage alerts (80%/90%)")
+                            .font(.system(size: 12))
+                        Spacer()
+                        Toggle("", isOn: $usageAlertsEnabled)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
                     }
+                    .padding(.vertical, 6)
                 }
             }
 
             // MARK: - Terminal
             SettingsSection(title: "Terminal") {
-                VStack(spacing: 12) {
+                VStack(spacing: 0) {
                     SettingsRow(icon: "apple.terminal.fill", iconColor: .green) {
                         Text("Terminal app")
                             .font(.system(size: 12))
@@ -125,8 +133,10 @@ struct SettingsView: View {
                         .frame(width: 100)
                         .controlSize(.small)
                     }
+                    .padding(.vertical, 6)
 
                     Divider()
+                        .padding(.leading, 34)
 
                     SettingsRow(icon: "folder.fill", iconColor: .orange) {
                         Text(defaultTerminalFolder.isEmpty ? NSLocalizedString("home", value: "Home (~)", comment: "Home dir") : abbreviatePath(defaultTerminalFolder))
@@ -152,6 +162,7 @@ struct SettingsView: View {
                         .font(.system(size: 11))
                         .controlSize(.small)
                     }
+                    .padding(.vertical, 6)
                 }
             }
 
@@ -166,36 +177,40 @@ struct SettingsView: View {
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 2)
                 }
                 .buttonStyle(.plain)
             }
 
             // MARK: - System
             SettingsSection(title: "System") {
-                VStack(spacing: 12) {
+                VStack(spacing: 0) {
                     SettingsRow(icon: "sunrise.fill", iconColor: .orange) {
-                        Toggle(isOn: $launchAtLogin) {
-                            Text("launch_at_login")
-                                .font(.system(size: 12))
-                        }
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
-                        .onChange(of: launchAtLogin) { newValue in
-                            setLaunchAtLogin(newValue)
-                        }
+                        Text("launch_at_login")
+                            .font(.system(size: 12))
+                        Spacer()
+                        Toggle("", isOn: $launchAtLogin)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                            .onChange(of: launchAtLogin) { newValue in
+                                setLaunchAtLogin(newValue)
+                            }
                     }
+                    .padding(.vertical, 6)
 
                     Divider()
+                        .padding(.leading, 34)
 
                     // About
                     Button(action: {
                         withAnimation { onAboutTap() }
                     }) {
-                        HStack {
+                        HStack(spacing: 10) {
                             Image("LogoIcon")
                                 .resizable()
-                                .frame(width: 20, height: 20)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .frame(width: 24, height: 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
 
                             Text("about")
                                 .font(.system(size: 12))
@@ -210,6 +225,7 @@ struct SettingsView: View {
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundStyle(.secondary)
                         }
+                        .padding(.vertical, 6)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
