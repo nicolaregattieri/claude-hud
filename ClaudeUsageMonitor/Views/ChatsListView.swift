@@ -14,7 +14,7 @@ struct ActivityView: View {
     let onClose: () -> Void
 
     private var recentChats: [ChatWithProject] {
-        Array(chats.prefix(8))
+        Array(chats.sorted { $0.chat.modified > $1.chat.modified }.prefix(8))
     }
 
     var body: some View {

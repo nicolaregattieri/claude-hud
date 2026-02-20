@@ -5,19 +5,28 @@ enum TerminalApp: String, CaseIterable, Identifiable {
     case terminal = "Terminal"
     case iterm2 = "iTerm2"
     case warp = "Warp"
+    case ghostty = "Ghostty"
+    case custom = "Custom"
 
     var id: String { rawValue }
 
-    var bundleIdentifier: String {
+    var bundleIdentifier: String? {
         switch self {
         case .terminal: return "com.apple.Terminal"
         case .iterm2: return "com.googlecode.iterm2"
         case .warp: return "dev.warp.Warp-Stable"
+        case .ghostty: return "com.mitchellh.ghostty"
+        case .custom: return nil
         }
     }
 
     var isInstalled: Bool {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) != nil
+        switch self {
+        case .custom: return true
+        default:
+            guard let id = bundleIdentifier else { return false }
+            return NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) != nil
+        }
     }
 }
 
@@ -25,14 +34,19 @@ class TerminalService {
     static let shared = TerminalService()
     private init() {}
 
-    func runCommand(folder: String, command: String, app: TerminalApp) {
+    func runCommand(folder: String, command: String, app: TerminalApp, customAppName: String? = nil) {
         switch app {
         case .terminal:
             runInTerminal(folder: folder, command: command)
         case .iterm2:
             runInITerm(folder: folder, command: command)
         case .warp:
-            runInWarp(folder: folder, command: command)
+            runViaKeystroke(appName: "Warp", folder: folder, command: command)
+        case .ghostty:
+            runViaKeystroke(appName: "Ghostty", folder: folder, command: command)
+        case .custom:
+            let name = customAppName ?? "Terminal"
+            runViaKeystroke(appName: name, folder: folder, command: command)
         }
     }
 
@@ -76,21 +90,22 @@ class TerminalService {
         }
     }
 
-    private func runInWarp(folder: String, command: String) {
+    /// Generic approach: open the app, create a new tab, type the command via System Events.
+    /// Works with Warp, Ghostty, Alacritty, kitty, Hyper, and most terminal emulators.
+    private func runViaKeystroke(appName: String, folder: String, command: String) {
         let safePath = folder.replacingOccurrences(of: "'", with: "'\\''")
         let fullCommand = "cd '\(safePath)' && \(command)"
         let applescriptCommand = fullCommand
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
 
-        // Warp supports AppleScript similar to Terminal
         let script = """
-        tell application "Warp"
+        tell application "\(appName)"
             activate
         end tell
         delay 0.5
         tell application "System Events"
-            tell process "Warp"
+            tell process "\(appName)"
                 keystroke "t" using command down
                 delay 0.3
                 keystroke "\(applescriptCommand)"

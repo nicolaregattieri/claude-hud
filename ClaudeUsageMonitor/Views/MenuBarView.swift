@@ -15,6 +15,7 @@ struct MenuBarView: View {
 
     @AppStorage("defaultTerminalFolder") private var defaultTerminalFolder: String = ""
     @AppStorage("selectedTerminalApp") private var selectedTerminalApp: TerminalApp = .terminal
+    @AppStorage("customTerminalName") private var customTerminalName: String = ""
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -249,7 +250,7 @@ struct MenuBarView: View {
                     }
                 },
                 onActivityTap: {
-                    loadChatsIfNeeded()
+                    reloadChats()
                     withAnimation {
                         showActivity = true
                         showProjects = false
@@ -285,7 +286,12 @@ struct MenuBarView: View {
     }
 
     private func runTerminalCommand(folder: String, command: String) {
-        TerminalService.shared.runCommand(folder: folder, command: command, app: selectedTerminalApp)
+        TerminalService.shared.runCommand(
+            folder: folder,
+            command: command,
+            app: selectedTerminalApp,
+            customAppName: customTerminalName.isEmpty ? nil : customTerminalName
+        )
     }
 
     private func loadProjectsIfNeeded() {
@@ -294,15 +300,12 @@ struct MenuBarView: View {
         }
     }
 
-    private func loadChatsIfNeeded() {
-        loadProjectsIfNeeded()
-        if allChats.isEmpty {
-            // Coletar todos os chats de todos os projetos e ordenar por data
-            allChats = projects.flatMap { project in
-                project.sessions.map { ChatWithProject(chat: $0, project: project) }
-            }
-            .sorted { $0.chat.modified > $1.chat.modified }
+    private func reloadChats() {
+        projects = ProjectsService.shared.loadProjects()
+        allChats = projects.flatMap { project in
+            project.sessions.map { ChatWithProject(chat: $0, project: project) }
         }
+        .sorted { $0.chat.modified > $1.chat.modified }
     }
 
     private func errorView(message: String) -> some View {
@@ -368,7 +371,7 @@ struct MenuBarView: View {
         .padding(.vertical, 20)
         .onAppear {
             if message == APIError.tokenExpired.localizedDescription {
-                loadChatsIfNeeded()
+                reloadChats()
             }
         }
     }
@@ -419,7 +422,7 @@ struct MenuBarView: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(isLoading ? .tertiary : .secondary)
                         .rotationEffect(.degrees(isLoading ? 360 : 0))
-                        .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoading)
+                        .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : nil, value: isLoading)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLoading)

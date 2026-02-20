@@ -36,11 +36,16 @@ struct ClaudeUsageMonitorApp: App {
                 }
         } label: {
             HStack(spacing: 4) {
-                Image("MenuBarIcon") // Custom Icon
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 12, height: 12)
-                
+                if NSImage(named: "MenuBarIcon") != nil {
+                    Image("MenuBarIcon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 12, height: 12)
+                } else {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 12))
+                }
+
                 if showPercentage, let percentage = appState.currentUsagePercentage {
                     Text("\(percentage)%")
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
