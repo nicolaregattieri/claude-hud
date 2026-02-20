@@ -422,7 +422,7 @@ struct MenuBarView: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(isLoading ? .tertiary : .secondary)
                         .rotationEffect(.degrees(isLoading ? 360 : 0))
-                        .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoading)
+                        .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : nil, value: isLoading)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLoading)
